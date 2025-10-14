@@ -1,0 +1,1177 @@
+<!-- METADATA: NIET VERWIJDEREN -->
+<!-- Version: 0.9 -->
+<!-- Author: Claude -->
+<!-- Date: 2024-02-13 -->
+<!-- Description: Intakeformulier voor nieuwe projecten en changes -->
+<!-- Copyright: Gemeente Wassenaar -->
+<!DOCTYPE html>
+<html lang="nl"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>Intakeformulier</title>
+    <style>
+        :root {
+            --wassenaar-green: #006937;
+            /* Wassenaar groen */
+            --wassenaar-blue: #0060AC;
+            /* Wassenaar blauw */
+            
+            /* Light mode colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9f9f9;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #ddd;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark mode colors */
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3a3a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #555;
+            --shadow: rgba(255, 255, 255, 0.1);
+        }
+
+        .advies-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .advies-block {
+            width: 400px;
+            /* of de gewenste breedte */
+        }
+
+        .advies-title {
+            display: inline-block;
+            /* Belangrijk: maakt dat het blok alleen zo breed is als de inhoud */
+            font-weight: bold;
+            font-size: 1.1em;
+            color: white;
+            background-color: var(--wassenaar-green);
+            padding: 5px 8px;
+        }
+
+        .status-label {
+            display: inline-block;
+            /* Ook hier: beperkt de breedte tot de inhoud */
+            background-color: #FFFF00;
+            padding: 2px 8px;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .advies-grid {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .advies-label {
+            font-size: 0.9em;
+        }
+
+        .advies-input {
+            width: 100%;
+            min-height: 25px;
+            height: 25px;
+            resize: vertical;
+            font-size: 0.9em;
+            padding: 3px 6px;
+        }
+
+        /* Dark mode toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .theme-toggle-icon {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        [data-theme="dark"] .theme-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Tooltip styles */
+        .theme-toggle::before,
+        .expand-toggle::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1001;
+        }
+
+        .theme-toggle:hover::before,
+        .expand-toggle:hover::before {
+            opacity: 1;
+        }
+
+        /* Basis styles */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header styling */
+        .header {
+            background-color: #006937;
+            color: white;
+            padding: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        /* Advies I&D titel */
+        .header h1 {
+            font-size: 1em;
+            margin: 0;
+            padding: 3px;
+        }
+
+        .assessment-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 3px;
+            margin: 3px;
+        }
+
+        .assessment-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px;
+            background: white;
+            min-height: 24px;
+        }
+
+        .assessment-item h3 {
+            margin: 0;
+            font-size: 0.8em;
+            width: 90px;
+        }
+
+        /* Status label */
+        .status-label {
+            font-size: 0.8em;
+            padding: 2px 5px;
+            background: #ffd700;
+            color: black;
+            border-radius: 2px;
+            margin: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .logo {
+            width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .metadata-box {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            background-color: var(--bg-secondary);
+            box-shadow: 0 1px 3px var(--shadow);
+            min-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .metadata-box h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .metadata-box p {
+            margin: 5px 0;
+            color: var(--text-secondary);
+        }
+
+        .button-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .button-group button {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background-color: #006937;
+        }
+
+        .btn-load {
+            background-color: #0060ac;
+        }
+
+        .btn-new {
+            background-color: #2b2b2b;
+        }
+
+        /* Section styles */
+        .section-container {
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .section-header {
+            cursor: pointer;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .section-header:hover {
+            background: var(--bg-secondary);
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 1.1em;
+            color: var(--text-primary);
+        }
+
+        .section-content {
+            display: none;
+            padding: 12px;
+            background: var(--bg-primary);
+            transition: all 0.3s ease;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .toggle-icon {
+            display: inline-block;
+            margin-right: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Form styles */
+        .form-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .form-table th,
+        .form-table td {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .form-table th {
+            width: 30%;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        textarea.form-control {
+            min-height: 25px;
+            height: 25px;
+            resize: vertical;
+            overflow: auto;
+            font-size: 0.9em;
+            padding: 3px 6px;
+            transition: height 0.2s ease;
+        }
+
+        /* Optioneel: styling voor als het veld focus heeft */
+        textarea:focus {
+            box-shadow: 0 0 3px rgba(0, 96, 172, 0.3);
+            border-color: #0060ac;
+        }
+
+        .radio-group label {
+            margin-right: 15px;
+        }
+
+        .checkbox-group label {
+            display: inline-block;
+            margin-right: 15px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 8px;
+            margin: 4px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .radio-group {
+            margin: 5px 0;
+        }
+
+        .radio-group label {
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .advies-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .advies-block {
+            width: 400px;
+        }
+
+        .advies-title {
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: white;
+            background-color: var(--wassenaar-green);
+            padding: 5px 8px;
+        }
+
+        .status-label {
+            display: inline-block;
+            background-color: #FFFF00;
+            padding: 2px 8px;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .page-header {
+            background-color: #f0f7ff;
+            /* Licht blauwige tint, subtiel */
+            border-bottom: 2px solid var(--wassenaar-blue);
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .process-title {
+            font-size: 1.4em;
+            color: var(--wassenaar-blue);
+            font-weight: 500;
+        }
+
+        .process-number {
+            background-color: var(--wassenaar-blue);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            font-weight: normal;
+        }
+
+        /* Expand/Collapse toggle */
+        .expand-toggle {
+            position: fixed;
+            top: 20px;
+            right: 80px;
+            z-index: 1000;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .expand-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .expand-toggle-icon {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+    </style>
+    <script>
+        function saveFormulier() {
+            const formData = {
+                procesNaam: document.getElementById('proces-naam').value,
+                datumIntake: document.querySelector('input[type="datetime-local"]').value,
+                managerNaam: document.querySelector('select[class="form-control"]').value,
+                // Voeg hier meer velden toe
+            };
+
+            fetch('/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+        }
+
+        function loadFormulier() {
+            fetch('/load')
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                } else {
+                    document.getElementById('proces-naam').value = data.procesNaam || '';
+                    document.querySelector('input[type="datetime-local"]').value = data.datumIntake || '';
+                    document.querySelector('select[class="form-control"]').value = data.managerNaam || '';
+                    // Vul hier meer velden in
+                    alert('Formulier succesvol geladen!');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+
+<body>
+    <!-- Control Toggles -->
+    <div class="theme-toggle" onclick="toggleTheme()" data-tooltip="Dark/Light mode wisselen">
+        <span class="theme-toggle-icon">🌙</span>
+    </div>
+    
+    <div class="expand-toggle" onclick="toggleAllSections()" data-tooltip="Alle secties uitklappen/invouwen">
+        <span class="expand-toggle-icon">📖</span>
+    </div>
+    
+    <div class="container">
+        <!-- Header sectie -->
+        <div class="page-header" style="background-color: var(--wassenaar-green); color: white;">
+            <div class="process-title" style="color: white;">
+                <span style="background-color: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 3px;">INTAKE:</span>
+                <span class="process-number" style="background-color: rgba(255,255,255,0.2);">P2025-XXX</span>
+                <span style="color: rgba(255,255,255,0.8);">Naam van het proces: </span><span style="color: white;"><naam van het proces></span>
+            </div>
+        </div>
+
+        <div class="header-section">
+            <div class="advies-container">
+                <div class="advies-block">
+                    <div class="advies-title">ADVIES I&amp;D</div>
+                    <div class="status-label">Status: Nieuw</div>
+
+                    <div class="advies-grid">
+                        <div class="advies-label">Privacy</div>
+                        <textarea class="advies-input" placeholder="advies... (mits...)"></textarea>
+
+                        <div class="advies-label">Informatieveiligheid</div>
+                        <textarea class="advies-input" placeholder="advies... (mits...)"></textarea>
+
+                        <div class="advies-label">Architectuur</div>
+                        <textarea class="advies-input" placeholder="advies... (mits...)"></textarea>
+
+                        <div class="advies-label">Archivering</div>
+                        <textarea class="advies-input" placeholder="advies... (mits...)"></textarea>
+
+                        <div class="advies-label">Inkoop</div>
+                        <textarea class="advies-input" placeholder="advies... (mits...)"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="metadata-box">
+                    <img src="Intakeformulier_21jan2025%20ondermijning_bestanden/wassenaar_logo_fc.svg" alt="Gemeente Wassenaar" class="logo">
+                    <p>Intakeformulier v0.9</p>
+                    <p>December 2024</p>
+                    <p>Laatste wijziging sjabloon: 13-02-2024 #1</p>
+                    <p>Laatste wijziging tijd: <script>document.write(new Date().toLocaleString('nl-NL'));</script>20-1-2025 23:20:37</p>
+                    <p>organogram/intakeformulier.html</p>
+                    <div class="button-group">
+                        <button class="btn-save" onclick="saveFormulier()">Opslaan</button>
+                        <button class="btn-load" onclick="document.getElementById('file-input').click()">Laden</button>
+                        <button class="btn-new" onclick="resetFormulier()">Nieuw</button>
+                        <input type="file" id="file-input" style="display: none;" accept=".json" onchange="loadFormulier(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOK 1 -->
+        <div class="section-container">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><span class="toggle-icon">▶</span> BLOK 1. Basisinformatie</h2>
+            </div>
+
+            <div class="section-content">
+                <div class="form-table">
+                    <table>
+                        <tbody><tr>
+                            <th>Verantwoordelijk proceseigenaar:</th>
+                            <td>
+                                <select class="form-control">
+                                    <option value="">✓ Selecteer eenheidsmanager...</option>
+                                    <option value="Hassan Akhiat">Hassan Akhiat (Informatie &amp; Datamanagement)</option>
+                                    <option value="Denise Bouwens">Denise Bouwens (Juridische Zaken)</option>
+                                    <option value="Marco Zandbergen">Marco Zandbergen (Ruimtelijke Ontwikkeling)
+                                    </option>
+                                    <option value="Hester van Leeuwen">Hester van Leeuwen (Maatschappelijke
+                                        Ontwikkeling)</option>
+                                    <option value="Stefan Brugman">Stefan Brugman (HR, Financien &amp; Inkoop)</option>
+                                    <option value="Alexander Oostermeier">Alexander Oostermeier (Strategie &amp;
+                                        Communicatie)</option>
+                                    <option value="Michelle Pilgram">Michelle Pilgram (Klant Contact Centrum)</option>
+                                    <option value="Laura Jongeneel">Laura Jongeneel (Ondersteuning)</option>
+                                    <option value="Remco Korving">Remco Korving (Openbare Orde &amp; Vergunningen)</option>
+                                    <option value="Henk van Leeuwen">Henk van Leeuwen (Onderhoud Openbare Ruimte)
+                                    </option>
+                                    <option value="Marcel Solleveld">Marcel Solleveld (Beheer &amp; Vastgoed)</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Naam medewerker/verzoeker:</th>
+                            <td>
+                                <input type="text" class="form-control" placeholder="Naam medewerker">
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Naam van het proces:</th>
+                            <td>
+                                <input type="text" class="form-control" id="proces-naam" oninput="updateProcesNaam(this.value)" placeholder="Naam van het proces">
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Datum intake:</th>
+                            <td>
+                                <input type="datetime-local" class="form-control">
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>TOPdesk melding:</th>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" id="topdesk-nee" name="topdesk" value="nee">
+                                    <label for="topdesk-nee">Nee</label>
+                                    <input type="radio" id="topdesk-ja" name="topdesk" value="ja">
+                                    <label for="topdesk-ja">Ja</label>
+                                    <input type="text" class="form-control" id="topdesk-nummer" placeholder="bijv. I 2312-345" style="flex-grow: 1;">
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Financiële dekking:</th>
+                            <td>
+                                <input type="text" class="form-control" placeholder="Financiële dekking">
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Is er ook met Voorschoten afgestemd:</th>
+                            <td>
+                                <div class="radio-group">
+                                    <input type="radio" id="voorschoten-nee" name="voorschoten" value="nee">
+                                    <label for="voorschoten-nee">Nee</label>
+                                    <input type="radio" id="voorschoten-ja" name="voorschoten" value="ja">
+                                    <label for="voorschoten-ja">Ja</label>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOK 2 -->
+        <div class="section-container">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><span class="toggle-icon">▶</span> BLOK 2. Informatiebehoefte</h2>
+            </div>
+
+            <div class="section-content">
+                <div class="form-table">
+                    <table>
+                        <tbody><tr>
+                            <th>Beschrijving behoefte</th>
+                            <td>
+                                <textarea class="form-control" rows="3" placeholder="Beschrijf de informatiebehoefte van de eenheid/manager"></textarea>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Relatie met A3 jaarplan</th>
+                            <td>
+                                <textarea class="form-control" rows="3" placeholder="Hoe past dit binnen de doelstellingen van het A3 jaarplan?"></textarea>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Huidige situatie</th>
+                            <td>
+                                <textarea class="form-control" rows="3" placeholder="Beschrijf de huidige situatie"></textarea>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Gewenste situatie</th>
+                            <td>
+                                <textarea class="form-control" rows="3" placeholder="Beschrijf de gewenste situatie"></textarea>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Type aanvraag</th>
+                            <td>
+                                <div class="radio-group">
+                                    <input type="radio" id="type-change" name="type-aanvraag" value="change">
+                                    <label for="type-change">Wijziging/Change</label>
+                                    <input type="radio" id="type-project" name="type-aanvraag" value="project">
+                                    <label for="type-project">Project</label>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Toelichting type aanvraag</th>
+                            <td>
+                                <textarea class="form-control" rows="3" placeholder="Licht hier toe waarom het een wijziging/change of project betreft..."></textarea>
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOK 3 -->
+        <div class="section-container">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><span class="toggle-icon">▶</span> BLOK 3. Applicatie &amp; Marktverkenning</h2>
+            </div>
+
+            <div class="section-content">
+                <div class="form-table">
+                    <table>
+                        <tbody><tr>
+                            <th>Bestaande interne oplossing?</th>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" id="internal-nee" name="internal" value="nee" checked="checked">
+                                    <label for="internal-ja">Ja</label>
+                                    <input type="radio" id="internal-nee" name="internal" value="nee">
+                                    <label for="internal-nee">Nee</label>
+                                    <input type="text" class="form-control" placeholder="Indien ja, welke applicatie? Waarom is deze niet gekozen?" style="flex-grow: 1;">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Verkenning SW-broker Protinus</th>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" id="protinus-nee" name="protinus" value="nee" checked="checked">
+                                    <label for="protinus-nee">Nee</label>
+                                    <input type="radio" id="protinus-ja" name="protinus" value="ja">
+                                    <label for="protinus-ja">Ja</label>
+                                    <input type="text" class="form-control" placeholder="Indien ja, wat zijn de bevindingen?" style="flex-grow: 1;">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <a href="https://www.softwarecatalogus.nl/pakketten" target="_blank">
+                                    VNG Softwarecatalogus
+                                </a>
+                            </th>
+                            <td>
+                                <div>
+                                    <textarea class="input-field" rows="6" style="min-height: 150px;" placeholder="Controleer in de VNG Softwarecatalogus:
+1. Welke leveranciers bieden vergelijkbare oplossingen?
+2. Welke standaarden worden ondersteund?
+3. Welke gemeenten gebruiken de software al?
+4. Is er een SaaS of on-premise oplossing?
+5. Welke koppelingen/APIs zijn beschikbaar?"></textarea>
+                                    <div style="margin-top: 5px;">
+                                        <a href="#" onclick="showSwCatalogusExample(event)" style="font-size: 0.9em; color: #0060AC;">
+                                            Bekijk voorbeeld: LEEF-Buiten ℹ️
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Popup voor het voorbeeld -->
+                                <div id="swCatalogusPopup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                     background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+                                     max-width: 800px; max-height: 80vh; overflow-y: auto; z-index: 1000;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                        <h3 style="margin: 0;">LEEF-Buiten (Voorbeeld)</h3>
+                                        <button onclick="closeSwCatalogusPopup()" style="border: none; background: none; cursor: pointer; font-size: 1.2em;">✖</button>
+                                    </div>
+                                    <div style="line-height: 1.6;">
+                                        <p><strong>Leverancier:</strong> Stadsbeheer b.v.</p>
+                                        <p><strong>Type oplossing:</strong> SaaS &amp; On-premise beschikbaar</p>
+                                        <p><strong>Ondersteunde standaarden:</strong></p>
+                                        <ul>
+                                            <li>Zaken API-standaard v1.x</li>
+                                            <li>Documenten API-standaard v1.x</li>
+                                            <li>Catalogi API-standaard v1.x</li>
+                                            <li>StUF ZKN 3.10</li>
+                                        </ul>
+                                        <p><strong>Functionaliteit:</strong></p>
+                                        <ul>
+                                            <li>Beheren van zaken</li>
+                                            <li>Ondersteunen zaakafhandeling</li>
+                                            <li>Ondersteunen van toezicht</li>
+                                            <li>Uitwisselen van berichten met ketenpartners</li>
+                                        </ul>
+                                        <p><a href="https://www.softwarecatalogus.nl/pakket/leef-buiten" target="_blank">Bekijk volledige details →</a></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <script>
+                            function showSwCatalogusExample(event) {
+                                event.preventDefault();
+                                document.getElementById('swCatalogusPopup').style.display = 'block';
+                                // Voeg overlay toe
+                                const overlay = document.createElement('div');
+                                overlay.id = 'popup-overlay';
+                                overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999;';
+                                document.body.appendChild(overlay);
+                            }
+
+                            function closeSwCatalogusPopup() {
+                                document.getElementById('swCatalogusPopup').style.display = 'none';
+                                document.getElementById('popup-overlay').remove();
+                            }
+
+                            // Sluit popup als er buiten wordt geklikt
+                            document.addEventListener('click', function (event) {
+                                const popup = document.getElementById('swCatalogusPopup');
+                                const overlay = document.getElementById('popup-overlay');
+                                if (event.target === overlay) {
+                                    popup.style.display = 'none';
+                                    overlay.remove();
+                                }
+                            });
+                        </script>
+
+                        <!-- Functioneel beheer vragen -->
+                        <tr>
+                            <th>Functioneel beheer noodzakelijk?</th>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" id="fb-nee" name="fb-nodig" value="nee" checked="checked">
+                                    <label for="fb-ja">Ja</label>
+                                    <input type="radio" id="fb-nee" name="fb-nodig" value="nee">
+                                    <label for="fb-nee">Nee</label>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Type functioneel beheer</th>
+                            <td>
+                                <select class="form-control" id="fb-type">
+                                    <option value="">Selecteer type...</option>
+                                    <option value="leverancier">Leverancier (helpdesk/strippenkaart)</option>
+                                    <option value="key-user">Key-user binnen de organisatie</option>
+                                    <option value="intern-fb">Intern functioneel beheer</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Geschatte FB capaciteit</th>
+                            <td>
+                                <select class="form-control" id="fb-capaciteit">
+                                    <option value="">Selecteer inschatting...</option>
+                                    <option value="minimal">Minimaal (&lt; 2 uur per maand)</option>
+                                    <option value="light">Light (2-8 uur per maand)</option>
+                                    <option value="medium">Medium (8-16 uur per maand)</option>
+                                    <option value="heavy">Heavy (&gt; 16 uur per maand)</option>
+                                </select>
+                                <textarea class="form-control" rows="2" placeholder="Toelichting op de benodigde capaciteit en werkzaamheden..."></textarea>
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOK 4 (voorheen BLOK 5) -->
+        <div class="section-container">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><span class="toggle-icon">▼</span> BLOK 4. Informatiebeveiliging &amp; Privacy</h2>
+            </div>
+
+            <div class="section-content">
+                <div class="form-table">
+                    <table>
+                        <tbody><tr>
+                            <th>BIO &amp; NIS2 eisen</th>
+                            <td><textarea placeholder="Relevante beveiligingseisen" class="input-field"></textarea></td>
+                        </tr>
+                        <tr>
+                            <th>Dataclassificatie</th>
+                            <td>
+                                <select class="input-field">
+                                    <option value="">Selecteer niveau</option>
+                                    <option value="BBN1">BBN1</option>
+                                    <option value="BBN2">BBN2</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Privacy grondslag</th>
+                            <td><textarea placeholder="Juridische grondslag voor gegevensverwerking" class="input-field" style="width: 789px; height: 188px;"></textarea></td>
+                        </tr>
+                        <tr>
+                            <th>ISO27001 vereist</th>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" id="iso-nee" name="iso" value="nee">
+                                    <label for="iso-nee">Nee</label>
+                                    <input type="radio" id="iso-nee" name="iso" value="nee" checked="checked">
+                                    <label for="iso-ja">Ja</label>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOK 5 (voorheen BLOK 4) -->
+        <div class="section-container">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><span class="toggle-icon">▶</span> BLOK 5. Architectuur &amp; Standaardisatie</h2>
+            </div>
+
+            <div class="section-content">
+                <div class="form-table">
+                    <table>
+                        <tbody><tr>
+                            <th>Aansluiting zaaksysteem</th>
+                            <td><textarea placeholder="Hoe sluit dit aan op het zaaksysteem?" class="input-field"></textarea></td>
+                        </tr>
+                        <tr>
+                            <th>Documentmanagement</th>
+                            <td><textarea placeholder="Hoe wordt omgegaan met documentopslag en -beheer?" class="input-field"></textarea></td>
+                        </tr>
+                        <tr>
+                            <th>Basisregistraties</th>
+                            <td>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" class="input-field"> BAG</label>
+                                    <label><input type="checkbox" class="input-field"> BRP</label>
+                                    <label><input type="checkbox" class="input-field"> BGT</label>
+                                    <label><input type="checkbox" class="input-field"> NHR</label>
+                                    <label><input type="checkbox" class="input-field"> RDW</label>
+                                </div>
+                                <textarea placeholder="Toelichting gebruik basisregistraties" class="input-field"></textarea>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Koppelingen</th>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 20px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <label>Financieel:</label>
+                                        <input type="radio" id="fin-nee" name="fin-koppeling" value="nee" checked="checked">
+                                        <label for="fin-nee">Nee</label>
+                                        <input type="radio" id="fin-ja" name="fin-koppeling" value="ja">
+                                        <label for="fin-ja">Ja</label>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <label>GIS (Nedbrowser):</label>
+                                        <input type="radio" id="gis-nee" name="gis-koppeling" value="nee" checked="checked">
+                                        <label for="gis-nee">Nee</label>
+                                        <input type="radio" id="gis-ja" name="gis-koppeling" value="ja">
+                                        <label for="gis-ja">Ja</label>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Past binnen spoor</th>
+                            <td>
+                                <select class="form-control">
+                                    <option value="" selected="selected">Selecteer spoor...</option>
+                                    <option value="A">A. Goede en betrouwbare dienstverlening</option>
+                                    <option value="B">B. Efficiënte bedrijfsvoering</option>
+                                    <option value="C">C. Datagedreven gemeente</option>
+                                    <option value="D">D. Werken onder architectuur</option>
+                                    <option value="E">E. Transparantie</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>
+                                Common Ground &amp; API's
+                                <div style="margin-top: 5px; font-size: 0.9em; color: #666;">
+                                    Controleer of de oplossing voldoet aan de Common Ground principes
+                                </div>
+                            </th>
+                            <td>
+                                <div style="display: flex; justify-content: flex-start; gap: 15px;">
+                                    <div><input type="checkbox" id="cg1" class="input-field"><label for="cg1">
+                                            Arch.</label></div>
+                                    <div><input type="checkbox" id="cg2" class="input-field"><label for="cg2"> Data bij
+                                            bron</label></div>
+                                    <div><input type="checkbox" id="cg3" class="input-field"><label for="cg3"> REST
+                                            API</label></div>
+                                    <div><input type="checkbox" id="cg4" class="input-field"><label for="cg4">
+                                            Cloud-native</label></div>
+                                </div>
+                                <textarea class="input-field" style="margin-top: 10px;" rows="4" placeholder="Licht toe hoe de oplossing aansluit bij Common Ground principes. Denk aan:
+- Worden gegevens bij de bron ontsloten?
+- Is er een API-first benadering?
+- Is de oplossing modulair opgezet?
+- Welke API koppelingen zijn beschikbaar/nodig?
+- Wordt gebruik gemaakt van NLX of Haven?
+- Zijn er standaard API's beschikbaar (bijv. StUF, ZGW API's)?"></textarea>
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOK 6 -->
+        <div class="section-container">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><span class="toggle-icon">▶</span> BLOK 6. Archivering</h2>
+            </div>
+
+            <div class="section-content">
+                <div class="form-table">
+                    <table>
+                        <tbody><tr>
+                            <th>Bewaartermijn</th>
+                            <td>
+                                <select class="input-field">
+                                    <option value="" selected="selected">Selecteer termijn</option>
+                                    <option value="1">1 jaar</option>
+                                    <option value="5">5 jaar</option>
+                                    <option value="7">7 jaar</option>
+                                    <option value="permanent">Permanent</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Archiefwet eisen</th>
+                            <td><textarea placeholder="Specifieke eisen vanuit de Archiefwet" class="input-field"></textarea></td>
+                        </tr>
+                        <tr>
+                            <th>Documentopslag locatie</th>
+                            <td>
+                                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                    <div>
+                                        <div class="radio-group">
+                                            <input type="radio" id="docs-zaaksysteem" name="docs-storage" value="zaaksysteem" checked="checked">
+                                            <label for="docs-zaaksysteem">Zaaksysteem/DMS</label>
+                                            <input type="radio" id="docs-applicatie" name="docs-storage" value="applicatie">
+                                            <label for="docs-applicatie">Backoffice applicatie</label>
+                                            <a href="https://www.noraonline.nl/wiki/NEN_2082" target="_blank" style="margin-left: 10px; font-size: 0.9em; color: #0060AC;">
+                                                ℹ️ NEN 2082 norm
+                                            </a>
+                                        </div>
+                                        <textarea class="input-field" style="margin-top: 10px;" rows="3" placeholder="Indien opslag in backoffice applicatie:
+- Voldoet de applicatie aan de NEN2082 norm?
+- Hoe wordt vernietiging conform bewaartermijnen geborgd?
+- Is er een export/migratiemogelijkheid naar e-Depot?
+- Zijn documenten via API's beschikbaar voor andere systemen?"></textarea>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Voeg click handlers toe aan alle section headers
+                document.querySelectorAll('.section-header').forEach(header => {
+                    header.addEventListener('click', function () {
+                        const section = this.parentElement;
+                        const content = section.querySelector('.section-content');
+                        const icon = this.querySelector('.toggle-icon');
+
+                        // Toggle de active class
+                        content.classList.toggle('active');
+
+                        // Update het icoontje
+                        icon.textContent = content.classList.contains('active') ? '▼' : '▶';
+                    });
+                });
+            });
+
+            // Functie voor het omzetten van de URL naar een preview link
+            function convertUrlToPreviewLink(input) {
+                const container = document.getElementById('software-link-container');
+                if (input.value) {
+                    const link = document.createElement('a');
+                    link.href = input.value;
+                    link.className = 'software-link';
+                    link.target = '_blank';
+                    link.textContent = 'Bekijk in VNG Softwarecatalogus';
+                    container.innerHTML = '';
+                    container.appendChild(link);
+                }
+            }
+
+            function updateProcesNaam(value) {
+                const procesNaamDisplay = document.querySelector('.process-title span:last-child');
+                procesNaamDisplay.textContent = value || '<naam van het proces>';
+                procesNaamDisplay.style.color = value ? 'white' : 'rgba(255,255,255,0.8)';
+            }
+
+            function resetFormulier() {
+                if (confirm('Weet je zeker dat je een nieuw formulier wilt starten? Alle ingevulde gegevens gaan verloren.')) {
+                    document.querySelectorAll('input:not([type="radio"]), textarea').forEach(element => {
+                        element.value = '';
+                    });
+                    document.querySelectorAll('select').forEach(element => {
+                        element.selectedIndex = 0;
+                    });
+                    document.querySelectorAll('input[type="radio"]').forEach(element => {
+                        if (element.value === 'nee') element.checked = true;
+                    });
+                    updateProcesNaam('');
+                }
+            }
+
+            // Dark Mode functionality
+            function toggleTheme() {
+                const html = document.documentElement;
+                const currentTheme = html.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Update toggle icon
+                const icon = document.querySelector('.theme-toggle-icon');
+                icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            }
+
+            // Load saved theme on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                
+                const icon = document.querySelector('.theme-toggle-icon');
+                icon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            });
+
+            // Toggle all sections functionality
+            let allSectionsExpanded = false;
+            
+            function toggleAllSections() {
+                const sections = document.querySelectorAll('.section-content');
+                const icons = document.querySelectorAll('.toggle-icon');
+                const toggleIcon = document.querySelector('.expand-toggle-icon');
+                
+                if (allSectionsExpanded) {
+                    // Collapse all
+                    sections.forEach(content => content.classList.remove('active'));
+                    icons.forEach(icon => icon.textContent = '▶');
+                    toggleIcon.textContent = '📖';
+                    allSectionsExpanded = false;
+                } else {
+                    // Expand all
+                    sections.forEach(content => content.classList.add('active'));
+                    icons.forEach(icon => icon.textContent = '▼');
+                    toggleIcon.textContent = '📕';
+                    allSectionsExpanded = true;
+                }
+            }
+        </script>
+    </div>
+
+
+</body></html>
